@@ -4,7 +4,8 @@
 **Enrollment:** 24bcs10134
 **Repository:** https://github.com/Bhuvanesh66/taskflow-devops-capstone
 **Pipeline:** [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)
-**Demo video:** [`demo/demo-video.mp4`](demo/demo-video.mp4) (compressed, 92 MB) · [full quality, 1.6 GB](https://github.com/Bhuvanesh66/taskflow-devops-capstone/releases/tag/v1.0) (release asset)
+**▶ Watch the demo:** https://youtu.be/gC8VgQam82A
+**Demo video file:** [`demo/demo-video.mp4`](demo/demo-video.mp4) (compressed, 92 MB) · [full quality, 1.6 GB](https://github.com/Bhuvanesh66/taskflow-devops-capstone/releases/tag/v1.0) (release asset)
 **Slides:** [`demo/slides.pdf`](demo/slides.pdf)
 
 ## Project overview
