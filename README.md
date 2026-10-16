@@ -4,6 +4,8 @@
 **Enrollment:** 24bcs10134
 **Repository:** https://github.com/Bhuvanesh66/taskflow-devops-capstone
 **Pipeline:** [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)
+**Demo video:** [`demo/demo-video.mp4`](demo/demo-video.mp4) (compressed, 92 MB) · [full quality, 1.6 GB](https://github.com/Bhuvanesh66/taskflow-devops-capstone/releases/tag/v1.0) (release asset)
+**Slides:** [`demo/slides.pdf`](demo/slides.pdf)
 
 ## Project overview
 
@@ -338,6 +340,39 @@ public-access blocks on:
 Then `destroy` removed all 23 resources, leaving no instance, VPC or bucket:
 
 ![terraform destroy: 23 destroyed](images/18-terraform-destroy.png)
+
+### EKS run (16 October 2026)
+
+For the final demo I ran the same code with `enable_eks = true`: the VPC with
+two public subnets plus an EKS 1.34 cluster and a managed node group in
+`ap-south-1`. On EKS I installed ingress-nginx, kube-prometheus-stack,
+metrics-server and Argo CD, and Argo CD deployed the chart from
+`gitops/argocd-application-eks.yaml` (values-dev + `values-eks.yaml`). The
+demo video shows the AWS Console, the synced Argo CD app, the pods, Prometheus
+targets and Grafana on this cluster.
+
+Two problems only showed up on real AWS:
+
+- **The node group hung in CREATING for 28 minutes.** The account is on the
+  AWS Free plan, which only launches free-tier instance types and silently
+  refused `t3.medium`. No instance was ever started. The default is now
+  `m7i-flex.large` (2 vCPU, 8 GiB), which the Free plan allows.
+- **The PostgreSQL PVC stayed Pending.** The EBS CSI controller crash-looped
+  with `no EC2 IMDS role found`: AL2023 nodes limit IMDSv2 to one hop, so a
+  pod cannot borrow the node's role. The controller now gets its own IAM role
+  through EKS Pod Identity (`eks.tf`). I checked it with the node's hop limit
+  set back to 1: 6/6 containers ready, 0 restarts.
+
+TaskFlow on EKS through the Ingress (AWS load balancer):
+
+![TaskFlow on EKS through the ingress-nginx load balancer](images/50-eks-app-browser.png)
+
+Before `terraform destroy` I removed what Kubernetes had created outside
+Terraform: the ingress-nginx load balancer (it would block deleting the VPC)
+and the PostgreSQL EBS volume (it would keep costing money). Then `destroy`
+removed everything:
+
+![terraform destroy of the EKS stack](images/51-eks-terraform-destroy.png)
 
 ## CI/CD pipeline
 
