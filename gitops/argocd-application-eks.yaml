@@ -1,7 +1,7 @@
 ﻿# Argo CD Application for the EKS cluster built by terraform/ (enable_eks = true).
 # Same as argocd-application.yaml plus the values-eks.yaml overlay (gp2 volume,
 # Ingress on the load balancer's DNS name). Applied once by hand:
-#   kubectl apply -f final-devops-project/gitops/argocd-application-eks.yaml
+#   kubectl apply -f gitops/argocd-application-eks.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -13,9 +13,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/Bhuvanesh66/devops-heros.git
+    repoURL: https://github.com/Bhuvanesh66/taskflow-devops-capstone.git
     targetRevision: main
-    path: final-devops-project/helm/taskflow
+    path: helm/taskflow
     helm:
       releaseName: taskflow
       valueFiles:

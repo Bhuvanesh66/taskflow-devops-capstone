@@ -1,8 +1,8 @@
 # Argo CD Application: "keep namespace taskflow identical to the Helm chart
-# final-devops-project/helm/taskflow (rendered with values-dev.yaml) on the main
+# helm/taskflow (rendered with values-dev.yaml) on the main
 # branch of this repository". Applied once by hand, it lives outside the
 # watched chart path on purpose:
-#   kubectl apply -f final-devops-project/gitops/argocd-application.yaml
+#   kubectl apply -f gitops/argocd-application.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -14,9 +14,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/Bhuvanesh66/devops-heros.git
+    repoURL: https://github.com/Bhuvanesh66/taskflow-devops-capstone.git
     targetRevision: main
-    path: final-devops-project/helm/taskflow
+    path: helm/taskflow
     helm:
       releaseName: taskflow
       valueFiles:

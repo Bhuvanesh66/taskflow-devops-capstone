@@ -4,7 +4,7 @@
   "description": "Request rate, errors, latency, business counters and pod resources for TaskFlow",
   "tags": [
     "taskflow",
-    "final-devops-project"
+    "capstone"
   ],
   "timezone": "browser",
   "schemaVersion": 39,

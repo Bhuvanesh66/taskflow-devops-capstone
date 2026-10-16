@@ -1,5 +1,5 @@
 # TaskFlow backend image (FastAPI + Alembic).
-# Build context: final-devops-project/   (see ../.dockerignore)
+# Build context:    (see ../.dockerignore)
 #   docker build -f docker/backend.Dockerfile -t taskflow-backend:local .
 
 # ---- stage 1: install dependencies into a virtualenv ------------------------
@@ -21,7 +21,7 @@ FROM python:3.12-slim-trixie
 
 LABEL org.opencontainers.image.title="taskflow-backend" \
       org.opencontainers.image.description="TaskFlow API (FastAPI, SQLAlchemy, Alembic)" \
-      org.opencontainers.image.source="https://github.com/Bhuvanesh66/devops-heros" \
+      org.opencontainers.image.source="https://github.com/Bhuvanesh66/taskflow-devops-capstone" \
       org.opencontainers.image.authors="Bhuvanesh M S (24bcs10134)"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

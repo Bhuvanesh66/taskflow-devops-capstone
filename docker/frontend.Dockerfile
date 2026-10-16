@@ -1,6 +1,6 @@
 # TaskFlow frontend image: build the React app with Node, serve it with
 # unprivileged nginx (listens on 8080, runs as UID 101) which also proxies /api.
-# Build context: final-devops-project/   (see ../.dockerignore)
+# Build context:    (see ../.dockerignore)
 #   docker build -f docker/frontend.Dockerfile -t taskflow-frontend:local .
 
 # ---- stage 1: build the static bundle ---------------------------------------
@@ -20,7 +20,7 @@ FROM nginxinc/nginx-unprivileged:1.30-alpine
 
 LABEL org.opencontainers.image.title="taskflow-frontend" \
       org.opencontainers.image.description="TaskFlow UI (React + Vite) on nginx-unprivileged" \
-      org.opencontainers.image.source="https://github.com/Bhuvanesh66/devops-heros" \
+      org.opencontainers.image.source="https://github.com/Bhuvanesh66/taskflow-devops-capstone" \
       org.opencontainers.image.authors="Bhuvanesh M S (24bcs10134)"
 
 # Where nginx forwards /api. The official entrypoint renders

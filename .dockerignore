@@ -1,4 +1,4 @@
-# Both images are built with the build context = final-devops-project/
+# Both images are built with the build context = the repository root
 # (Dockerfiles live in docker/). Allow-list: only what the images need is sent
 # to the Docker daemon - no tests, no node_modules, no .env, no reports.
 *
