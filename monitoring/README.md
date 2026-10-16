@@ -31,12 +31,12 @@ only needed for the plain-manifest deployment.
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
-  -n monitoring --create-namespace -f final-devops-project/monitoring/kube-prometheus-stack-values.yaml
+  -n monitoring --create-namespace -f monitoring/kube-prometheus-stack-values.yaml
 
 # plain-manifest deployment only (Helm/Argo CD render these themselves):
-kubectl apply -f final-devops-project/monitoring/servicemonitor.yaml
-kubectl apply -f final-devops-project/monitoring/prometheus-rules.yaml
-kubectl apply -f final-devops-project/monitoring/grafana-dashboard-configmap.yaml
+kubectl apply -f monitoring/servicemonitor.yaml
+kubectl apply -f monitoring/prometheus-rules.yaml
+kubectl apply -f monitoring/grafana-dashboard-configmap.yaml
 
 kubectl -n monitoring port-forward svc/kube-prometheus-stack-prometheus 9090:9090   # Status -> Targets: taskflow-backend UP
 kubectl -n monitoring port-forward svc/kube-prometheus-stack-grafana 3001:80        # Dashboards -> "TaskFlow - Application Overview"

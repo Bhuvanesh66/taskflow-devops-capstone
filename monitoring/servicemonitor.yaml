@@ -1,6 +1,6 @@
 # Scrape the TaskFlow backend's /metrics (plain-manifest deployment).
 # The Helm chart renders an equivalent ServiceMonitor when serviceMonitor.enabled=true.
-#   kubectl apply -f final-devops-project/monitoring/servicemonitor.yaml
+#   kubectl apply -f monitoring/servicemonitor.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:

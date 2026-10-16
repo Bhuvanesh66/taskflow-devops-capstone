@@ -1,7 +1,7 @@
 # kube-prometheus-stack for TaskFlow on a single-node minikube/kind.
 #   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 #   helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
-#     -n monitoring --create-namespace -f final-devops-project/monitoring/kube-prometheus-stack-values.yaml
+#     -n monitoring --create-namespace -f monitoring/kube-prometheus-stack-values.yaml
 prometheus:
   prometheusSpec:
     retention: 12h

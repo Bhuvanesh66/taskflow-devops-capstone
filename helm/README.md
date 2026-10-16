@@ -14,7 +14,7 @@ ConfigMap. It also includes a `helm test` hook.
 ## Install
 
 ```bash
-cd final-devops-project
+# from the repository root
 helm lint helm/taskflow -f helm/taskflow/values-dev.yaml
 helm template taskflow helm/taskflow -f helm/taskflow/values-dev.yaml | less
 

@@ -11,7 +11,7 @@ with kubectl, find the **root cause**, **fix** it, **verify** the fix, and
 **document** it here.
 
 ```bash
-cd final-devops-project
+# from the repository root
 
 # 0. healthy baseline (needs the images: GHCR packages public, or minikube image load)
 kubectl apply -k troubleshooting/lab-base

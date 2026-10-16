@@ -22,7 +22,7 @@ Credentials come from the AWS CLI profile or environment variables. Nothing
 secret is stored in this folder.
 
 ```bash
-cd final-devops-project/terraform
+cd terraform
 cp terraform.tfvars.example terraform.tfvars   # edit: region, allowed_http_cidrs (your IP /32), image_tag
 
 terraform init

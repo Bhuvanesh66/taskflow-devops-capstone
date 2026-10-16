@@ -1,7 +1,7 @@
 # Alerting rules for the plain-manifest deployment (namespace taskflow).
 # The Helm chart renders the same rules (templates/prometheusrule.yaml) when
 # prometheusRule.enabled=true - use one or the other, not both.
-#   kubectl apply -f final-devops-project/monitoring/prometheus-rules.yaml
+#   kubectl apply -f monitoring/prometheus-rules.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:

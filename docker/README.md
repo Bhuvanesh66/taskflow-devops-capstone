@@ -10,7 +10,7 @@
 
 ## Build context
 
-I keep the Dockerfiles in this folder and use **`final-devops-project/` as the
+I keep the Dockerfiles in this folder and use **the repository root (`.`) as the
 build context** for both images. That way the frontend image can copy
 `docker/nginx.conf` and the app code from `application/frontend/` in one
 build. `../.dockerignore` is an allow-list, so the daemon only receives the
@@ -18,7 +18,7 @@ files the images need. Tests, `node_modules`, `.env` files and reports are
 never sent.
 
 ```bash
-cd final-devops-project
+# from the repository root
 docker build -f docker/backend.Dockerfile  -t taskflow-backend:local  .
 docker build -f docker/frontend.Dockerfile -t taskflow-frontend:local .
 ```
@@ -26,7 +26,7 @@ docker build -f docker/frontend.Dockerfile -t taskflow-frontend:local .
 ## Run the stack
 
 ```bash
-cd final-devops-project/docker
+cd docker
 docker compose up --build
 ```
 

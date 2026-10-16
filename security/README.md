@@ -46,7 +46,7 @@ next build fails until the image is rebuilt on the patched base.
 ## Run locally
 
 ```bash
-cd final-devops-project
+# from the repository root
 bash security/scan-local.sh                 # everything, including image builds
 SKIP_IMAGES=1 bash security/scan-local.sh   # source scans only (the gate then fails on the missing image reports)
 ```

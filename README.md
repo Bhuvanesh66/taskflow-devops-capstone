@@ -2,8 +2,8 @@
 
 **Student:** Bhuvanesh M S
 **Enrollment:** 24bcs10134
-**Repository:** https://github.com/Bhuvanesh66/devops-heros (folder `final-devops-project/`)
-**Pipeline:** [`.github/workflows/final-devops-project.yml`](../.github/workflows/final-devops-project.yml)
+**Repository:** https://github.com/Bhuvanesh66/taskflow-devops-capstone
+**Pipeline:** [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)
 
 ## Project overview
 
@@ -42,7 +42,7 @@ Application -> Git -> GitHub -> CI -> Build & Test -> Security Scanning -> Docke
 ```mermaid
 flowchart LR
     dev[Developer] -->|git push| gh[GitHub repo<br/>main]
-    gh --> ci{{GitHub Actions<br/>final-devops-project.yml}}
+    gh --> ci{{GitHub Actions<br/>ci-cd.yml}}
 
     subgraph CI[CI - every push and PR]
         lt[lint-test<br/>ruff, pytest + coverage,<br/>npm ci + vite build]
@@ -114,19 +114,21 @@ flowchart LR
 ## Repository layout
 
 ```
-final-devops-project/
+taskflow-devops-capstone/
 ├── application/
 │   ├── backend/          FastAPI app (app/), Alembic (alembic/), tests/, pytest.ini, requirements*.txt, start.sh
 │   └── frontend/         React + Vite (src/, index.html, package.json, package-lock.json)
 ├── docker/               backend.Dockerfile, frontend.Dockerfile, nginx.conf, docker-compose.yml
-├── kubernetes/           plain manifests + kustomization.yaml
-├── helm/taskflow/        Helm chart (values.yaml, values-dev.yaml, values-prod.yaml)
-├── terraform/            AWS infrastructure
-├── .github/workflows/    README + mirror of the root workflow (GitHub only runs the root one)
+├── k8s/                  plain manifests + kustomization.yaml
+├── helm/taskflow/        Helm chart (values.yaml, values-dev.yaml, values-eks.yaml, values-prod.yaml)
+├── terraform/            AWS infrastructure (VPC, EKS, EC2, S3)
+├── .github/workflows/    ci-cd.yml: the CI/CD + DevSecOps pipeline
 ├── security/             Semgrep rules, Bandit/Gitleaks/Trivy config, gate.py, scan-local.sh
 ├── monitoring/           ServiceMonitor, PrometheusRule, Grafana dashboard, kube-prometheus-stack values
-├── gitops/               Argo CD Application
+├── gitops/               Argo CD Applications (kind/minikube and EKS)
 ├── troubleshooting/      lab-base + eight broken overlays + write-up
+├── demo/                 slide deck (slides.pdf) and the demo video
+├── images/               screenshots used in this README
 └── README.md
 ```
 
@@ -172,7 +174,7 @@ origin only), `RUN_MIGRATIONS` (container entrypoint), `PORT`.
 ### Run it locally without Docker
 
 ```bash
-cd final-devops-project/application/backend
+cd application/backend
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
 alembic upgrade head                                    # creates taskflow.db (SQLite)
@@ -205,7 +207,7 @@ TaskFlow in a browser (Playwright), served through the minikube Ingress at `task
 Details: [docker/README.md](docker/README.md).
 
 ```bash
-cd final-devops-project/docker
+cd docker
 docker compose up --build
 # UI  http://localhost:3000     API docs  http://localhost:8000/docs
 ```
@@ -215,7 +217,7 @@ docker compose up --build
   `alembic upgrade head`, then starts uvicorn.
 - `docker/frontend.Dockerfile`: multi-stage, Node 24 build then
   `nginx-unprivileged`. Runs as UID 101 on port 8080.
-- Both images use `final-devops-project/` as the build context. The
+- Both images use the repository root (`.`) as the build context. The
   `.dockerignore` there is an allow-list.
 - In compose, the app containers are read-only with `cap_drop: [ALL]` and
   `no-new-privileges`. Start-up is ordered with health checks
@@ -227,11 +229,11 @@ docker compose up --build
 
 ## Kubernetes deployment
 
-Details: [kubernetes/README.md](kubernetes/README.md).
+Details: [k8s/README.md](k8s/README.md).
 
 ```bash
 minikube addons enable ingress && minikube addons enable metrics-server
-kubectl apply -k final-devops-project/kubernetes
+kubectl apply -k k8s
 kubectl -n taskflow get pods,svc,pvc,hpa,ingress
 # hosts file: <minikube ip> taskflow.local   ->   http://taskflow.local
 ```
@@ -259,8 +261,8 @@ Under load (two busybox Pods calling `/api/tasks` in a loop) the backend HPA wen
 Details: [helm/README.md](helm/README.md).
 
 ```bash
-helm upgrade --install taskflow final-devops-project/helm/taskflow -n taskflow --create-namespace \
-  -f final-devops-project/helm/taskflow/values-dev.yaml \
+helm upgrade --install taskflow helm/taskflow -n taskflow --create-namespace \
+  -f helm/taskflow/values-dev.yaml \
   --set backend.image.tag=<commit-sha> --set frontend.image.tag=<commit-sha>
 helm list -n taskflow
 helm test taskflow -n taskflow --logs
@@ -281,7 +283,7 @@ PrometheusRule and Grafana dashboard.
 Details and cost notes: [terraform/README.md](terraform/README.md).
 
 ```bash
-cd final-devops-project/terraform
+cd terraform
 cp terraform.tfvars.example terraform.tfvars
 terraform init && terraform fmt -check && terraform validate
 terraform plan -out tfplan && terraform apply tfplan
@@ -339,10 +341,9 @@ Then `destroy` removed all 23 resources, leaving no instance, VPC or bucket:
 
 ## CI/CD pipeline
 
-Workflow: [`/.github/workflows/final-devops-project.yml`](../.github/workflows/final-devops-project.yml),
-named **"Final DevOps Project - CI/CD + DevSecOps"**. It triggers on push and
-pull request to `main` for `final-devops-project/**` and the workflow file
-itself, and on `workflow_dispatch`. The default permission is
+Workflow: [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml),
+named **"TaskFlow CI/CD + DevSecOps"**. It triggers on every push and
+pull request to `main`, and on `workflow_dispatch`. The default permission is
 `contents: read`; only the jobs that need more ask for it
 (`security-events: write`, `packages: write`).
 
@@ -428,8 +429,8 @@ I took the Prometheus and Grafana evidence from their HTTP APIs. In a headless b
 Details: [gitops/README.md](gitops/README.md).
 
 `gitops/argocd-application.yaml` points Argo CD at
-`https://github.com/Bhuvanesh66/devops-heros.git`, path
-`final-devops-project/helm/taskflow`, values file `values-dev.yaml`,
+`https://github.com/Bhuvanesh66/taskflow-devops-capstone.git`, path
+`helm/taskflow`, values file `values-dev.yaml`,
 destination namespace `taskflow`, with automated `prune` + `selfHeal` and
 `CreateNamespace=true`. To promote a build, I change the image tags in
 `values-dev.yaml` to the commit SHA CI pushed, commit and push; Argo CD syncs

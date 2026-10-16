@@ -5,8 +5,8 @@ identical to what the Helm chart renders from the `main` branch:
 
 | Field | Value |
 |---|---|
-| repoURL | `https://github.com/Bhuvanesh66/devops-heros.git` |
-| path | `final-devops-project/helm/taskflow` |
+| repoURL | `https://github.com/Bhuvanesh66/taskflow-devops-capstone.git` |
+| path | `helm/taskflow` |
 | valueFiles | `values-dev.yaml` |
 | releaseName | `taskflow` |
 | syncPolicy | automated, `prune: true`, `selfHeal: true`, `CreateNamespace=true`, retry with backoff |
@@ -21,7 +21,7 @@ kubectl -n argocd rollout status deploy/argocd-server
 
 # values-dev.yaml enables ServiceMonitor/PrometheusRule, so install
 # kube-prometheus-stack first (see monitoring/), or the sync fails on the missing CRDs.
-kubectl apply -f final-devops-project/gitops/argocd-application.yaml
+kubectl apply -f gitops/argocd-application.yaml
 
 kubectl -n argocd get applications
 kubectl -n argocd port-forward svc/argocd-server 8443:443

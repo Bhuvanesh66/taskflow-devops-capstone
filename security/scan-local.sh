@@ -3,7 +3,7 @@
 # security gate GitHub Actions uses. Needs Docker; Python 3.12 and Node are
 # used from the host when present, otherwise from throw-away containers.
 #
-#   cd final-devops-project
+#   (from the repository root)
 #   bash security/scan-local.sh            # all scans, images built locally
 #   SKIP_IMAGES=1 bash security/scan-local.sh   # source scans only
 #
