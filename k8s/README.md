@@ -29,7 +29,7 @@ kubectl -n taskflow create secret generic taskflow-db \
   --from-literal=DB_USER=taskflow \
   --from-literal=DB_PASSWORD="$(openssl rand -base64 24)"
 
-kubectl apply -k final-devops-project/kubernetes
+kubectl apply -k k8s
 kubectl -n taskflow get pods,svc,pvc,hpa,ingress
 kubectl -n taskflow rollout status deploy/taskflow-backend
 

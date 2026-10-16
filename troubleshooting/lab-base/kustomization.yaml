@@ -1,12 +1,12 @@
 # Lab copy of the working TaskFlow stack in its own namespace (taskflow-lab),
 # so the broken variants never touch the real deployment in namespace taskflow
 # (which Argo CD may be self-healing). Each issue-N overlay starts from this.
-#   kubectl apply -k final-devops-project/troubleshooting/lab-base     # healthy baseline
+#   kubectl apply -k troubleshooting/lab-base     # healthy baseline
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: taskflow-lab
 resources:
-  - ../../kubernetes
+  - ../../k8s
 labels:
   - pairs:
       app.kubernetes.io/instance: taskflow-lab

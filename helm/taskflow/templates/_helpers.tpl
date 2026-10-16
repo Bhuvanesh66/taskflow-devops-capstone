@@ -5,7 +5,7 @@
 
 {{/*
 Fully qualified app name. With release name "taskflow" this is just "taskflow",
-so the objects get the same names as the plain manifests in kubernetes/.
+so the objects get the same names as the plain manifests in k8s/.
 */}}
 {{- define "taskflow.fullname" -}}
 {{- if .Values.fullnameOverride }}
