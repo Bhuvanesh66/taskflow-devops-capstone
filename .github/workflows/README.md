@@ -1,20 +1,9 @@
-# Where the pipeline lives
+# CI/CD workflow
 
-GitHub Actions only runs workflow files from the repository root, so the real
-pipeline is:
+[`ci-cd.yml`](ci-cd.yml) is the whole pipeline: **"TaskFlow CI/CD + DevSecOps"**.
 
-**[`/.github/workflows/final-devops-project.yml`](../../../.github/workflows/final-devops-project.yml)**
-
-`final-devops-project.yml` in this folder is a read-only mirror, kept so the
-project folder is self-contained for grading. GitHub never runs it from here.
-Always edit the root file, then copy it over:
-
-```bash
-# from the repository root
-{ echo "# mirror of /.github/workflows/final-devops-project.yml - edit the original, not this copy"; \
-  cat .github/workflows/final-devops-project.yml; } > final-devops-project/.github/workflows/final-devops-project.yml
-```
-
-It triggers on pushes and pull requests to `main` that touch
-`final-devops-project/**` or the workflow file, and on manual
-`workflow_dispatch` runs.
+It runs on every push and pull request to `main`, and on manual
+`workflow_dispatch` runs. Jobs: lint-test, validate-iac, sast, sca,
+secret-scan, docker-build, image-scan, security-gate, push-images (main only)
+and deploy (kind + Helm). See the CI/CD section of the root
+[README](../../README.md) for what each job checks.

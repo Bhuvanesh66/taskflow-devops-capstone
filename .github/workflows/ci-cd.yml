@@ -1,4 +1,3 @@
-# mirror of /.github/workflows/final-devops-project.yml - edit the original, not this copy
 # Final DevOps Project - TaskFlow
 # Author: Bhuvanesh M S (24bcs10134)
 #
@@ -8,22 +7,16 @@
 #
 # Every scanner runs in "report only" mode and uploads a JSON report. The
 # security-gate job is the single place that decides PASS/FAIL (policy in
-# final-devops-project/security/gate.py). The image tars that were scanned are
+# security/gate.py). The image tars that were scanned are
 # exactly the images that are pushed to GHCR and deployed to Kubernetes.
 
-name: Final DevOps Project - CI/CD + DevSecOps
+name: TaskFlow CI/CD + DevSecOps
 
 on:
   push:
     branches: [main]
-    paths:
-      - "final-devops-project/**"
-      - ".github/workflows/final-devops-project.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "final-devops-project/**"
-      - ".github/workflows/final-devops-project.yml"
   workflow_dispatch:
 
 # Least privilege by default; jobs that need more ask for it themselves.
@@ -31,11 +24,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: final-devops-project-${{ github.ref }}
+  group: ci-cd-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  APP_DIR: final-devops-project
+  APP_DIR: .
   BACKEND_IMAGE: ghcr.io/bhuvanesh66/final-taskflow-backend
   FRONTEND_IMAGE: ghcr.io/bhuvanesh66/final-taskflow-frontend
   PYTHON_VERSION: "3.12"
@@ -48,7 +41,7 @@ env:
 defaults:
   run:
     shell: bash
-    working-directory: final-devops-project
+    working-directory: .
 
 jobs:
   # ------------------------------------------------------- 1. LINT + UNIT TEST
@@ -65,22 +58,22 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: final-devops-project/application/backend/requirements*.txt
+          cache-dependency-path: application/backend/requirements*.txt
 
       - name: Install backend dependencies
-        working-directory: final-devops-project/application/backend
+        working-directory: application/backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
       - name: Lint backend (ruff)
-        working-directory: final-devops-project/application/backend
+        working-directory: application/backend
         run: |
           ruff check --output-format=github .
           ruff format --check .
 
       - name: Test backend (pytest on SQLite, with coverage)
-        working-directory: final-devops-project/application/backend
+        working-directory: application/backend
         run: |
           mkdir -p reports
           pytest -v \
@@ -89,7 +82,7 @@ jobs:
 
       - name: Write test summary
         if: always()
-        working-directory: final-devops-project/application/backend
+        working-directory: application/backend
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import xml.etree.ElementTree as ET
@@ -117,10 +110,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: final-devops-project/application/frontend/package-lock.json
+          cache-dependency-path: application/frontend/package-lock.json
 
       - name: Build frontend (npm ci + vite build)
-        working-directory: final-devops-project/application/frontend
+        working-directory: application/frontend
         run: |
           npm ci --no-audit --no-fund
           npm run build
@@ -132,8 +125,8 @@ jobs:
         with:
           name: test-reports
           path: |
-            final-devops-project/application/backend/reports/
-            final-devops-project/application/frontend/dist/
+            application/backend/reports/
+            application/frontend/dist/
           retention-days: 7
           if-no-files-found: warn
 
@@ -170,7 +163,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/rendered"
           helm template taskflow helm/taskflow -n taskflow -f helm/taskflow/values-dev.yaml > "$RUNNER_TEMP/rendered/helm-dev.yaml"
           helm template taskflow helm/taskflow -n taskflow -f helm/taskflow/values-prod.yaml > "$RUNNER_TEMP/rendered/helm-prod.yaml"
-          kubectl kustomize kubernetes > "$RUNNER_TEMP/rendered/kustomize.yaml"
+          kubectl kustomize k8s > "$RUNNER_TEMP/rendered/kustomize.yaml"
           for overlay in troubleshooting/lab-base troubleshooting/issue-*; do
             kubectl kustomize "$overlay" > "$RUNNER_TEMP/rendered/$(basename "$overlay").yaml"
           done
@@ -193,7 +186,7 @@ jobs:
           PY
 
       - name: Terraform fmt + validate (no AWS credentials needed)
-        working-directory: final-devops-project/terraform
+        working-directory: terraform
         run: |
           terraform fmt -check -recursive -diff
           terraform init -backend=false -input=false
@@ -244,7 +237,7 @@ jobs:
         continue-on-error: true # code scanning is a nice-to-have view; the gate is the decision
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: final-devops-project/reports/semgrep.sarif
+          sarif_file: reports/semgrep.sarif
           category: final-semgrep
 
       - name: Upload SAST reports
@@ -253,9 +246,9 @@ jobs:
         with:
           name: reports-sast
           path: |
-            final-devops-project/reports/semgrep.json
-            final-devops-project/reports/semgrep.sarif
-            final-devops-project/reports/bandit.json
+            reports/semgrep.json
+            reports/semgrep.sarif
+            reports/bandit.json
           retention-days: 14
 
   # ---------------------------------------------------------------- 4. SCA
@@ -291,7 +284,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: npm audit (frontend lockfile)
-        working-directory: final-devops-project/application/frontend
+        working-directory: application/frontend
         run: |
           npm audit --json > ../../reports/npm-audit.json || true
           npm audit --audit-level=high || true
@@ -301,13 +294,13 @@ jobs:
         with:
           version: ${{ env.TRIVY_VERSION }}
           scan-type: fs
-          scan-ref: final-devops-project
+          scan-ref: .
           scanners: vuln
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          trivyignores: final-devops-project/security/.trivyignore
+          trivyignores: security/.trivyignore
           format: json
-          output: final-devops-project/reports/trivy-fs.json
+          output: reports/trivy-fs.json
           exit-code: "0"
 
       - name: Trivy filesystem scan (table for the log)
@@ -316,11 +309,11 @@ jobs:
           version: ${{ env.TRIVY_VERSION }}
           skip-setup-trivy: true
           scan-type: fs
-          scan-ref: final-devops-project
+          scan-ref: .
           scanners: vuln
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          trivyignores: final-devops-project/security/.trivyignore
+          trivyignores: security/.trivyignore
           format: table
           exit-code: "0"
 
@@ -330,9 +323,9 @@ jobs:
         with:
           name: reports-sca
           path: |
-            final-devops-project/reports/pip-audit.json
-            final-devops-project/reports/npm-audit.json
-            final-devops-project/reports/trivy-fs.json
+            reports/pip-audit.json
+            reports/npm-audit.json
+            reports/trivy-fs.json
           retention-days: 14
 
   # -------------------------------------------------------- 5. SECRET SCAN
@@ -347,8 +340,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Scoped to this project on purpose: other folders of this course repo
-      # contain intentionally fake demo secrets (Kubernetes Secret examples).
       - name: Gitleaks - current files
         working-directory: ${{ github.workspace }}
         run: |
@@ -364,7 +355,7 @@ jobs:
         run: |
           docker run --rm -v "$GITHUB_WORKSPACE:/repo" "$GITLEAKS_IMAGE" \
             git /repo \
-            --log-opts="HEAD -- $APP_DIR .github/workflows/final-devops-project.yml" \
+            --log-opts="HEAD" \
             --config "/repo/$APP_DIR/security/.gitleaks.toml" \
             --gitleaks-ignore-path "/repo/$APP_DIR/security/.gitleaksignore" \
             --report-format json --report-path "/repo/$APP_DIR/reports/gitleaks-git.json" \
@@ -375,7 +366,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: reports-secrets
-          path: final-devops-project/reports/gitleaks-*.json
+          path: reports/gitleaks-*.json
           retention-days: 14
 
   # ------------------------------------------------------- 6. DOCKER BUILD
@@ -412,12 +403,12 @@ jobs:
             type=raw,value=${{ github.sha }}
             type=raw,value=latest
 
-      # Build context = final-devops-project/ for both; the Dockerfiles live in docker/.
+      # Build context = the repository root for both; the Dockerfiles live in docker/.
       - name: Build backend image to a tar (not pushed yet)
         uses: docker/build-push-action@v7
         with:
-          context: final-devops-project
-          file: final-devops-project/docker/backend.Dockerfile
+          context: .
+          file: docker/backend.Dockerfile
           push: false
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
@@ -428,8 +419,8 @@ jobs:
       - name: Build frontend image to a tar (not pushed yet)
         uses: docker/build-push-action@v7
         with:
-          context: final-devops-project
-          file: final-devops-project/docker/frontend.Dockerfile
+          context: .
+          file: docker/frontend.Dockerfile
           push: false
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
@@ -530,9 +521,9 @@ jobs:
           scanners: vuln,secret
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          trivyignores: final-devops-project/security/.trivyignore
+          trivyignores: security/.trivyignore
           format: json
-          output: final-devops-project/reports/trivy-image-${{ matrix.image }}.json
+          output: reports/trivy-image-${{ matrix.image }}.json
           exit-code: "0"
 
       - name: Trivy image scan (table for the log, all severities)
@@ -543,7 +534,7 @@ jobs:
           input: ${{ runner.temp }}/${{ matrix.image }}.tar
           scanners: vuln,secret
           severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
-          trivyignores: final-devops-project/security/.trivyignore
+          trivyignores: security/.trivyignore
           format: table
           exit-code: "0"
 
@@ -556,9 +547,9 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           limit-severities-for-sarif: true
-          trivyignores: final-devops-project/security/.trivyignore
+          trivyignores: security/.trivyignore
           format: sarif
-          output: final-devops-project/reports/trivy-image-${{ matrix.image }}.sarif
+          output: reports/trivy-image-${{ matrix.image }}.sarif
           exit-code: "0"
 
       - name: Generate SBOM (CycloneDX)
@@ -568,7 +559,7 @@ jobs:
           skip-setup-trivy: true
           input: ${{ runner.temp }}/${{ matrix.image }}.tar
           format: cyclonedx
-          output: final-devops-project/reports/sbom-${{ matrix.image }}.cdx.json
+          output: reports/sbom-${{ matrix.image }}.cdx.json
           exit-code: "0"
 
       - name: Upload SARIF to GitHub code scanning
@@ -576,7 +567,7 @@ jobs:
         continue-on-error: true
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: final-devops-project/reports/trivy-image-${{ matrix.image }}.sarif
+          sarif_file: reports/trivy-image-${{ matrix.image }}.sarif
           category: final-trivy-${{ matrix.image }}
 
       - name: Upload image scan reports
@@ -585,9 +576,9 @@ jobs:
         with:
           name: reports-image-${{ matrix.image }}
           path: |
-            final-devops-project/reports/trivy-image-${{ matrix.image }}.json
-            final-devops-project/reports/trivy-image-${{ matrix.image }}.sarif
-            final-devops-project/reports/sbom-${{ matrix.image }}.cdx.json
+            reports/trivy-image-${{ matrix.image }}.json
+            reports/trivy-image-${{ matrix.image }}.sarif
+            reports/sbom-${{ matrix.image }}.cdx.json
           retention-days: 14
 
   # ----------------------------------------------------- 8. SECURITY GATE
@@ -608,7 +599,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: reports-*
-          path: final-devops-project/reports
+          path: reports
           merge-multiple: true
 
       - name: List reports
@@ -623,8 +614,8 @@ jobs:
         with:
           name: security-gate-result
           path: |
-            final-devops-project/reports/gate-summary.md
-            final-devops-project/reports/gate-result.json
+            reports/gate-summary.md
+            reports/gate-result.json
           retention-days: 14
 
   # ------------------------------------------------------ 9. PUSH IMAGES
