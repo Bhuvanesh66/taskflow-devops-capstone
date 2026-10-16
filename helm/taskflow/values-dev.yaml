@@ -4,7 +4,7 @@
 
 backend:
   image:
-    tag: latest
+    tag: b190551b03e69bb276c9c279e3805e059996d350
   logLevel: DEBUG
   appEnv: development
   autoscaling:
@@ -13,7 +13,7 @@ backend:
 
 frontend:
   image:
-    tag: latest
+    tag: b190551b03e69bb276c9c279e3805e059996d350
   autoscaling:
     minReplicas: 2
     maxReplicas: 3
